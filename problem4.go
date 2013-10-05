@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math"
     "math/big"
     "math/rand"
 )
@@ -106,19 +105,24 @@ func MillerRabinAux(n int64) bool {
 
 
 //RandomNBitNumber returns a random number with the specified number of bits
-func RandomNBitNumber(n int) int64{
-    lower_bound := int64(math.Pow(2, float64(n))) //Inclusive
-    upper_bound := int64(math.Pow(2, float64(n+1))) //Exclusive
+func RandomNBitNumber(n int64) big.Int{
 
-    return r.Int63n(upper_bound - lower_bound) + lower_bound
+    bigN := big.NewInt(n-1)
+    bigN = bigN.Exp(big.NewInt(2), big.NewInt(n), nil)
+
+    result := big.NewInt(0)
+    result = result.Rand(r, bigN)
+    
+    result.Add(result, bigN)
+    return *result
 }
 
 //RandomNBitPrime returns random prime numbers of the specified size
-func RandomNBitPrime(n int, certainty int) int64{
+func RandomNBitPrime(n int64, certainty int) big.Int {
     for {
-        n := RandomNBitNumber(n)
+        result := RandomNBitNumber(n)
         if MillerRabin(n, certainty){
-            return n
+            return result
         }
     }
 }

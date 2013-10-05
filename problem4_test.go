@@ -46,13 +46,19 @@ func Test_MillerRabin(t *testing.T) {
 }
 
 
-/**
 func TestRandomNBitNumber(t *testing.T){
     
-    bits := 62
-    number := RandomNBitNumber(bits)
-    if !(4611686018427387904 <= number &&  number < 9223372036854775808) {
-        t.Errorf("Attempting to generate a %d-bit number yielded %d", bits, number)
+    number := RandomNBitNumber(62)
+    lower := big.NewInt(0)
+    upper := big.NewInt(0)
+    lower, s1 := lower.SetString("4611686018427387904", 10); 
+    upper, s2 := upper.SetString("9223372036854775808", 10)
+    
+    if !s1 || !s2 {
+        t.Errorf("Error creating bounds for test")
+    }
+
+    if lower.Cmp(&number) > 0 || upper.Cmp(&number) != 1 {
+        t.Errorf("Attempting to generate a %d-bit number yielded %s", 62, number.String())
     }
 }
-*/
