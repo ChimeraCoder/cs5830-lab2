@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+    "log"
 )
 
 func Test_Exponentiation(t *testing.T) {
@@ -23,14 +24,25 @@ func Test_invert(t *testing.T) {
 
 func Test_MillerRabin(t *testing.T) {
 
-    //3571 is prime
-	if !MillerRabin(3571, 10){
-		t.Error("MillerRabin failed")
-	}
+    
+    prime_tests := []int{23251, 999331, 115249, 479001599}
 
-    //3572 is not prime
-	if MillerRabin(3572, 10) {
-		t.Error("MillerRabin failed")
-	}
 
+    for _, prime := range prime_tests{
+        if !MillerRabin(prime, 10){
+            t.Errorf("MillerRabin failed to detect primality of %d", prime)
+        } else {
+            log.Printf("Succeeded on prime %d", prime)
+        }
+
+        composite := prime +2 
+        if MillerRabin(composite, 10) {
+            t.Errorf("MillerRabin claimed that composite number %d is prime", composite)
+        } else {
+            log.Printf("Succeeded on composite number %d", composite)
+        }
+    }
+
+    
 }
+
