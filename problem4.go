@@ -32,7 +32,7 @@ func euclid(a, b int) (x int, y int) {
 }
 
 //exp returns a^{pow} mod n
-func exp(a, pow, n int) int {
+func Exp(a, pow, n int) int {
 	square_iterations := int(math.Floor(math.Log2(float64(pow))))
 	//We need to square a "square_iterations" times
 	//then multiply by a^(pow-(2^square_iterations))
@@ -71,7 +71,7 @@ func main() {
 	log.Print(euclid(10, 15))
 	log.Print(invert(101, 102))
 
-	log.Print(exp(2, 10, 5))
-	log.Print(exp(3, 16, 3000))
+	log.Print(Exp(2, 10, 5))
+	log.Print(Exp(3, 16, 3000))
 
 }
