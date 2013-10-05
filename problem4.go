@@ -37,48 +37,21 @@ func euclid(a, b int) (x int, y int) {
 
 //exp returns a^{pow} mod n
 func Exp(a, pow, n big.Int) big.Int {
-    //check if pow == 0
-	if pow.Cmp(big.NewInt(0)) == 0 {
-		return *big.NewInt(1)
-	}
 
-    //log.Print("Done comapring")
-	//We need to square a "square_iterations" times
-	//then multiply by a^(pow-(2^square_iterations))
-    //Without math.Big, this would be equivalent to the following:
-	//square_iterations := int(math.Floor(math.Log2(float64(pow))))
-    square_iterations := pow.BitLen()
+    result := big.NewInt(1)
+    tmp := &a
 
+    for i := 0;  i < pow.BitLen(); i++{
+        bit := pow.Bit(i)
+        if bit == 1 {
+            result.Mul(result, tmp)
+            result.Mod(result, &n)
+        }
 
-	tmp := big.NewInt(1)
-	for i := 0; i < square_iterations; i++ {
-        //tmp = tmp * tmp % n
-		tmp = tmp.Mul(tmp, tmp)
-        
-        tmp = tmp.Mod(tmp, &n)
-	}
-    //log.Print("Done iterating powers of 2")
-
-	//Now, tmp = a^(2^square_iterations)
-
-	//TODO make this more performant
-
-
-    //how many multiplications have already been performed
-    multiplications_performed := big.NewInt(0)
-    multiplications_performed = multiplications_performed.Exp(big.NewInt(2), big.NewInt(int64(square_iterations)), nil)
-    
-    new_pow := big.NewInt(0)
-    new_pow = new_pow.Sub(&pow, multiplications_performed)
-
-
-    //Without math/big, this would be the following
-    //return tmp * Exp(a, new_pow, n) % n
-    result := big.NewInt(0)
-    //log.Printf("About to do recursive call on %v %v %v", a, *new_pow, n) 
-    *result = Exp(a, *new_pow, n)
-    result = result.Mul(tmp, result)
-    result = result.Mod(result, &n)
+        //This could be simplified by big.Exp, but we can't use that
+        tmp.Mul(tmp, tmp)
+        tmp.Mod(tmp, &n)
+    }
     return *result
 }
 
