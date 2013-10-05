@@ -103,11 +103,4 @@ func MillerRabinAux(n int) bool {
 }
 
 func main() {
-	log.Print(gcd(10, 15))
-	log.Print(euclid(10, 15))
-	log.Print(invert(101, 102))
-
-	log.Print(Exp(2, 10, 5))
-	log.Print(Exp(3, 16, 3000))
-
 }
