@@ -77,17 +77,16 @@ func MillerRabin(n, numTests int) bool {
 
 func MillerRabinAux(n int) bool {
     d := n-1
-    s := 1
-    for ; d%s == 0; {
-        s *= 2
+    s := 0
+    for ; d%2 == 0; {
+        d = d / 2
+        s++
     }
-    s = int(math.Floor(math.Log2(float64(s))))
-    d = (n-1)/s
-    // crufty
-    //s := int(math.Floor(math.Log2(float64(n-1))))
-    //d := (n-1) / int(math.Pow(2,float64(s)))
+
     a := r.Intn(n-3) + 2 // returns vals between [2, n-2] incl.
     x := Exp(a, d, n)
+
+
     if (x == 1) || (x == n-1) {
         return true
     }
@@ -97,7 +96,7 @@ func MillerRabinAux(n int) bool {
             return false
         }
         if (x == n-1) {
-            continue
+            return true
         }
     }
     return false
