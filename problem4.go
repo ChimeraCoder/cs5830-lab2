@@ -37,13 +37,13 @@ func euclid(a, b int) (x int, y int) {
 
 //exp returns a^{pow} mod n
 func Exp(a, pow, n int) int {
-	square_iterations := int(math.Floor(math.Log2(float64(pow))))
-	//We need to square a "square_iterations" times
-	//then multiply by a^(pow-(2^square_iterations))
-
-	if square_iterations == 0 {
+	if pow  == 0 {
 		return 1
 	}
+
+	//We need to square a "square_iterations" times
+	//then multiply by a^(pow-(2^square_iterations))
+	square_iterations := int(math.Floor(math.Log2(float64(pow))))
 
 	tmp := a
 	for i := 0; i < square_iterations; i++ {
@@ -53,11 +53,7 @@ func Exp(a, pow, n int) int {
 	//Now, tmp = a^(2^square_iterations)
 
 	//TODO make this more performant
-	//return tmp * exp(a, pow - int(math.Pow(2, float64(square_iterations))), n) % n
-	for i := 0; i < (pow - int(math.Pow(2, float64(square_iterations)))); i++ {
-		tmp = (tmp * a) % n
-	}
-	return tmp
+	return tmp * Exp(a, pow - int(math.Pow(2, float64(square_iterations))), n) % n
 }
 
 //invert finds the modular inverse of an element, mod divisor
