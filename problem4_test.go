@@ -20,3 +20,17 @@ func Test_invert(t *testing.T) {
 		t.Error("Invert failed")
 	}
 }
+
+func Test_MillerRabin(t *testing.T) {
+
+    //3571 is prime
+	if !MillerRabin(3571, 10){
+		t.Error("MillerRabin failed")
+	}
+
+    //3572 is not prime
+	if MillerRabin(3572, 10) {
+		t.Error("MillerRabin failed")
+	}
+
+}
