@@ -78,7 +78,8 @@ func TestRandomNBitNumber(t *testing.T) {
 }
 
 func Test_RandomNBitSafePrime(t *testing.T) {
-	bits := int64(80)
+	//bits := int64(80)
+	bits := int64(20)
 	number := RandomNBitSafePrime(bits, 10)
 
 	//If number is a safe prime, "other_prime" should be prime too
@@ -135,20 +136,25 @@ func Test_FindGenerator(t *testing.T) {
 
 func Test_RSA(t *testing.T) {
 
-	certainty := 10
+	certainty := 40
 
 	message := big.NewInt(0)
 
 	//Message should be a random integer on the range [0, 2^20)
 	message = big.NewInt(0).Rand(r, big.NewInt(0).Exp(big.NewInt(2), big.NewInt(20), nil))
+	log.Printf("Message is %s", message.String())
 	bitLength := int64(math.Floor(math.Pow(2, 8)))
 	//Together, e and n form the public key
 	//Together, n and d form the public key
 	//d = 1/e mod phi(n)
 
 	log.Print("encoding")
+
+	bitLength = 128
+
 	encoded, e, n, d := RSA(message, bitLength, certainty)
 	log.Print("encoded")
+	log.Printf("d is %s", d.String())
 
 	result := big.NewInt(0)
 	if result.Exp(message, e, n).Cmp(encoded) != 0 {
