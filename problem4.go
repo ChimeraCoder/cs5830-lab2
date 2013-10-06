@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/big"
 	"math/rand"
 )
@@ -38,19 +39,23 @@ func euclid(a, b int) (x int, y int) {
 func Exp(a, pow, n big.Int) big.Int {
 
 	result := big.NewInt(1)
-	tmp := &a
+
+	//Set tmp to a so that when we take its address, we do not modify a
+	tmp := a
 
 	for i := 0; i < pow.BitLen(); i++ {
 		bit := pow.Bit(i)
 		if bit == 1 {
-			result.Mul(result, tmp)
+			result.Mul(result, &tmp)
 			result.Mod(result, &n)
 		}
 
 		//This could be simplified by big.Exp, but we can't use that
-		tmp.Mul(tmp, tmp)
-		tmp.Mod(tmp, &n)
+		foo := big.NewInt(0)
+		tmp = *foo.Mul(&tmp, &tmp)
+		tmp = *foo.Mod(&tmp, &n)
 	}
+
 	return *result
 }
 
@@ -165,5 +170,27 @@ func RandomNBitSafePrime(n int64, certainty int) big.Int {
 	}
 }
 
+func FindPrimeAndGenerator(n int64, certainty int) (big.Int, big.Int) {
+	p := RandomNBitSafePrime(n, certainty)
+	q := big.NewInt(0)
+	q = q.Sub(&p, big.NewInt(1))
+	q = q.Div(q, big.NewInt(2))
+	nBig := big.NewInt(n)
+	gCandidate := big.NewInt(1)
+	log.Print("Beginning search for g within p = ", p.String())
+	for ; gCandidate.Cmp(&p) == -1; gCandidate = gCandidate.Add(gCandidate, big.NewInt(1)) {
+		log.Print("Testing ", gCandidate.String())
+
+		if e := Exp(*gCandidate, *big.NewInt(2), *nBig); e.Cmp(gCandidate) == 0 {
+			continue
+		}
+		if e := Exp(*gCandidate, *q, *nBig); e.Cmp(gCandidate) == 0 {
+			continue
+		}
+		break
+	}
+	log.Print("Returning: p=", p.String(), "g=", gCandidate.String())
+	return p, *gCandidate
+}
 func main() {
 }

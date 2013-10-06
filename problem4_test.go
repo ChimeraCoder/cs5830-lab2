@@ -79,6 +79,43 @@ func Test_RandomNBitSafePrime(t *testing.T) {
 
 	if !MillerRabin(*other_prime, 20) {
 		t.Errorf("Error - %s is not a safe prime, as %s is composite", number.String(), other_prime.String())
+	} else {
+		log.Printf("Succeded in generating safe prime %s", number.String())
+	}
+}
+
+func Test_FindGenerator(t *testing.T) {
+	bits := int64(6)
+	certainty := 10
+	p1, g1 := FindPrimeAndGenerator(bits, certainty)
+	p := &p1
+	g := &g1
+
+	//g^2 and g^((p-1)/2) should not yield g again (mod p)
+
+	error_found := false
+
+	result := big.NewInt(0)
+	result.Exp(g, big.NewInt(2), p)
+	if result.Cmp(g) == 0 {
+		t.Errorf("Falsely identified %s as a generator for Zp* for p = %s", g.String(), p.String())
+		error_found = true
+	}
+
+	//q = (p-1)/2
+	q := big.NewInt(0)
+	q = q.Sub(p, big.NewInt(1))
+	q = q.Div(q, big.NewInt(2))
+
+	result = big.NewInt(0)
+	result.Exp(g, q, p)
+	if result.Cmp(g) == 0 {
+		t.Errorf("Falsely identified %s as a generator for Zp* for p = %s", g.String(), p.String())
+		error_found = true
+	}
+
+	if !error_found {
+		log.Printf("Successfully identified generator %s for prime %s", g.String(), p.String())
 	}
 
 }
