@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"math/big"
 	"testing"
 )
@@ -10,18 +11,30 @@ func Test_Exponentiation(t *testing.T) {
 
 	if e := Exp(*big.NewInt(3), *big.NewInt(16), *big.NewInt(3000)); e.Cmp(big.NewInt(2721)) != 0 {
 		t.Error("exp failed")
+		log.Print("first exp failed")
 	} else {
 		t.Log("first exp passed") // log some info if you want
+		log.Print("first exp passed")
 	}
+
 	//if Exp(2, 10, 5) != 4 {
 	if e := Exp(*big.NewInt(2), *big.NewInt(10), *big.NewInt(5)); e.Cmp(big.NewInt(4)) != 0 {
 		t.Error("second exp failed")
+		log.Print("second exp failed")
+	} else {
+		t.Log("second exp passed")
+		log.Print("second exp passed")
 	}
 }
 
 func Test_invert(t *testing.T) {
-	if invert(101, 102) != -1 {
+	//Check if inverting 101 and 102 yields -1, as it should
+	log.Print("Testing inverting")
+	if invert(big.NewInt(101), big.NewInt(102)).Cmp(big.NewInt(-1)) != 0 {
 		t.Error("Invert failed")
+		log.Print("Invert failed")
+	} else {
+		log.Print("Invert passed")
 	}
 }
 
@@ -116,6 +129,39 @@ func Test_FindGenerator(t *testing.T) {
 
 	if !error_found {
 		log.Printf("Successfully identified generator %s for prime %s", g.String(), p.String())
+	}
+
+}
+
+func Test_RSA(t *testing.T) {
+
+	certainty := 10
+
+	message := big.NewInt(0)
+
+	//Message should be a random integer on the range [0, 2^20)
+	message = big.NewInt(0).Rand(r, big.NewInt(0).Exp(big.NewInt(2), big.NewInt(20), nil))
+	bitLength := int64(math.Floor(math.Pow(2, 8)))
+	//Together, e and n form the public key
+	//Together, n and d form the public key
+	//d = 1/e mod phi(n)
+
+	log.Print("encoding")
+	encoded, e, n, d := RSA(message, bitLength, certainty)
+	log.Print("encoded")
+
+	result := big.NewInt(0)
+	if result.Exp(message, e, n).Cmp(encoded) != 0 {
+		t.Errorf("The encoded message is not the same as x^e, mod N")
+	}
+
+	//The trapdoor does not need e
+	decrypted := RSA_Trapdoor(encoded, n, d)
+
+	if decrypted.Cmp(message) != 0 {
+		t.Errorf("Encrypting with RSA and then decrypting message with RSA trapdoor did not yield the same result")
+	} else {
+		t.Log("Successfully encrypted message with RSA and decrypted with the RSA trapdoor")
 	}
 
 }

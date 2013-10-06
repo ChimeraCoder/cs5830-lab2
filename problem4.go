@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"math"
 	"math/big"
 	"math/rand"
 )
@@ -10,28 +10,53 @@ import (
 var r = rand.New(rand.NewSource(123))
 
 //Function gcd uses Euclid's algorithm to compute the inverse of a number, mod m
-func gcd(a, m int) int {
+func gcd(a, m *big.Int) *big.Int {
+	a2 := big.NewInt(0)
+	m2 := big.NewInt(0)
+	a2.Set(a)
+	m2.Set(m)
+
 	for {
-		if m == 0 {
+		if m2.Cmp(big.NewInt(0)) == 0 {
 			break
 		}
-		tmp := m
-		m = a % tmp
-		a = tmp
+
+		tmp := big.NewInt(0)
+		tmp.Set(m2)     //tmp = m
+		m2.Mod(a2, tmp) //m = a % tmp
+		a2.Set(tmp)     //a = tmp
 	}
-	return a
+	return a2
 }
 
 //euclid returns the numbers x, y such that ax + by = gcd(a, b)
-func euclid(a, b int) (x int, y int) {
+func euclid(a, b *big.Int) (x *big.Int, y *big.Int) {
+	//Copy over a and b into new places in memory
+	//So that the caller's values don't get modified
+	a2 := big.NewInt(0)
+	b2 := big.NewInt(0)
+	a2.Set(a)
+	b2.Set(b)
+	a = a2
+	b = b2
+
 	for {
-		if b == 0 {
-			return 1, 0
+		if b.Cmp(big.NewInt(0)) == 0 {
+			return big.NewInt(1), big.NewInt(0)
 		}
-		q := a / b
-		r := a % b
+		q := big.NewInt(0)
+		r := big.NewInt(0)
+
+		q.Div(a, b) //q := a / b
+		r.Mod(a, b) //r := a % b
+
 		s, t := euclid(b, r)
-		return t, s - q*t
+
+		//secondVal = s - q*t
+		secondVal := big.NewInt(0)
+		secondVal.Mul(q, t)
+		secondVal.Sub(s, secondVal)
+		return t, secondVal
 	}
 }
 
@@ -60,13 +85,16 @@ func Exp(a, pow, n big.Int) big.Int {
 }
 
 //invert finds the modular inverse of an element, mod divisor
-func invert(element, divisor int) int {
+func invert(element, divisor *big.Int) *big.Int {
 	g := gcd(element, divisor)
+
 	s, _ := euclid(element, divisor)
 
 	//The pair (s/g, t/g) is the solution to ax + my = 1
 	//where t is the discarded return value from euclid()
-	return s / g
+	result := big.NewInt(0)
+
+	return result.Div(s, g) //return s/g
 }
 
 //MillerRabin checks if the number is prime, using the Miller-Rabin test
@@ -177,9 +205,7 @@ func FindPrimeAndGenerator(n int64, certainty int) (big.Int, big.Int) {
 	q = q.Div(q, big.NewInt(2))
 	nBig := big.NewInt(n)
 	gCandidate := big.NewInt(1)
-	log.Print("Beginning search for g within p = ", p.String())
 	for ; gCandidate.Cmp(&p) == -1; gCandidate = gCandidate.Add(gCandidate, big.NewInt(1)) {
-		log.Print("Testing ", gCandidate.String())
 
 		if e := Exp(*gCandidate, *big.NewInt(2), *nBig); e.Cmp(gCandidate) == 0 {
 			continue
@@ -189,8 +215,46 @@ func FindPrimeAndGenerator(n int64, certainty int) (big.Int, big.Int) {
 		}
 		break
 	}
-	log.Print("Returning: p=", p.String(), "g=", gCandidate.String())
 	return p, *gCandidate
 }
+
+func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int) {
+
+	p := big.NewInt(0)
+	q := big.NewInt(0)
+	*p = RandomNBitPrime(bitlength, certainty)
+	*q = RandomNBitPrime(bitlength, certainty)
+
+	//phi = (p-1)(q-1)
+	phi := big.NewInt(0)
+	phi.Sub(p, big.NewInt(1))
+	q_1 := big.NewInt(0)
+	q_1 = q_1.Sub(q, big.NewInt(1))
+	phi.Mul(phi, q_1)
+
+	n = big.NewInt(0)
+	n = n.Mul(p, q)
+
+	//Generate e (this can be constant)
+	e_int := int64(math.Floor(math.Pow(2, 16) + 1))
+	e = big.NewInt(e_int)
+
+	//Verify that phi is greater than (2^16 + 1)
+	if !(phi.Cmp(e) == 1) {
+		//We need to regenerate e
+	}
+
+	encoded = big.NewInt(0)
+	*encoded = Exp(*x, *e, *n)
+
+	d = invert(e, phi)
+
+	return encoded, e, n, d
+}
+
+func RSA_Trapdoor(encoded, n, d *big.Int) (message *big.Int) {
+	return encoded
+}
+
 func main() {
 }
