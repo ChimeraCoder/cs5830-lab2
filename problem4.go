@@ -253,7 +253,9 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 }
 
 func RSA_Trapdoor(encoded, n, d *big.Int) (message *big.Int) {
-	return encoded
+    message = big.NewInt(0)
+	*message = Exp(*encoded, *d, *n)
+	return
 }
 
 func main() {
