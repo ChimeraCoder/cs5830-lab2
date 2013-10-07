@@ -294,12 +294,22 @@ func RandomNBitPrime(n int64, certainty int) big.Int {
 //only safe primes
 func RandomNBitSafePrime(n int64, certainty int) big.Int {
 	for {
-		number := RandomNBitPrime(n, certainty)
+		number := big.NewInt(0)
+		*number = RandomNBitNumber(n)
+		tmp := big.NewInt(0)
+		tmp.Set(number)
+		tmp = tmp.Mod(tmp,big.NewInt(12))
+		if tmp.Cmp(big.NewInt(11)) != 0 {
+			continue
+		}
+		if !MillerRabin(*number, certainty) {
+			continue
+		}
 		other := big.NewInt(0)
-		other = other.Sub(&number, big.NewInt(1))
+		other = other.Sub(number, big.NewInt(1))
 		other = other.Div(other, big.NewInt(2))
 		if MillerRabin(*other, certainty) {
-			return number
+			return *number
 		}
 	}
 }
