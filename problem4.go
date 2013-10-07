@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"math"
 	"math/big"
 	"math/rand"
+	"sync"
 )
 
 // using constant for debugging; in production would use time.now()
@@ -56,6 +59,7 @@ func euclid(a, b *big.Int) (x *big.Int, y *big.Int) {
 		secondVal := big.NewInt(0)
 		secondVal.Mul(q, t)
 		secondVal.Sub(s, secondVal)
+
 		return t, secondVal
 	}
 }
@@ -102,15 +106,51 @@ func invert(element, divisor *big.Int) *big.Int {
 //It will never incorrectly reject a prime number as composite
 //Higer values of numTests will decrease the chance of a false positive
 func MillerRabin(n big.Int, numTests int) bool {
+
+	var wg sync.WaitGroup
+
+	results := make(chan bool)
+
 	for i := 0; i < numTests; i++ {
-		if MillerRabinAux(n) == false {
-			return false
+		n2 := big.NewInt(0)
+		n2.Set(&n)
+		go func(n2 big.Int) {
+			wg.Add(1)
+			millerRabinAux(n2, results)
+			wg.Done()
+		}(*n2)
+	}
+
+	done := make(chan bool)
+	go func() {
+		wg.Wait()
+		done <- true
+	}()
+
+	for {
+		select {
+		case r := <-results:
+			{
+				if r == false {
+					return false
+				}
+			}
+
+		case <-done:
+			{
+				return true
+			}
 		}
 	}
-	return true
+
+	//This should never be reachable
+	return false
 }
 
-func MillerRabinAux(n big.Int) bool {
+//millerRabinAux sends a boolean along the response channel
+//A false value indicates that it was able to conclude definitively
+//that n is composite (not prime)
+func millerRabinAux(n big.Int, response chan bool) {
 	d := big.NewInt(0)
 	d = d.Sub(&n, big.NewInt(1))
 
@@ -141,7 +181,8 @@ func MillerRabinAux(n big.Int) bool {
 	//if (x == 1) || (x == n-1) {
 	f := big.NewInt(0)
 	if (x.Cmp(big.NewInt(1)) == 0) || (x.Cmp(f.Sub(&n, big.NewInt(1))) == 0) {
-		return true
+		response <- true
+		return
 	}
 
 	s_minus_one := big.NewInt(0)
@@ -150,15 +191,18 @@ func MillerRabinAux(n big.Int) bool {
 	for i := big.NewInt(0); i.Cmp(s_minus_one) == -1; i.Add(i, big.NewInt(1)) {
 		x = Exp(x, *big.NewInt(2), n)
 		if x.Cmp(big.NewInt(1)) == 0 {
-			return false
+			response <- false
+			return
 		}
 
 		tmp := big.NewInt(0)
 		if x.Cmp(tmp.Sub(&n, big.NewInt(1))) == 0 {
-			return true
+			response <- true
+			return
 		}
 	}
-	return false
+	response <- false
+	return
 }
 
 //RandomNBitNumber returns a random number with the specified number of bits
@@ -220,10 +264,12 @@ func FindPrimeAndGenerator(n int64, certainty int) (big.Int, big.Int) {
 
 func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int) {
 
+	log.Print("Starting RSA")
 	p := big.NewInt(0)
 	q := big.NewInt(0)
-	*p = RandomNBitPrime(bitlength, certainty)
-	*q = RandomNBitPrime(bitlength, certainty)
+	*p = RandomNBitPrime(bitlength/2, certainty)
+	*q = RandomNBitPrime(bitlength/2, certainty)
+	log.Printf("Generated primes %s and %s", p.String(), q.String())
 
 	//phi = (p-1)(q-1)
 	phi := big.NewInt(0)
@@ -232,28 +278,36 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 	q_1 = q_1.Sub(q, big.NewInt(1))
 	phi.Mul(phi, q_1)
 
+	log.Printf("phi is %s", phi.String())
+
 	n = big.NewInt(0)
 	n = n.Mul(p, q)
 
+	log.Printf("n is %s", n.String())
 	//Generate e (this can be constant)
 	e_int := int64(math.Floor(math.Pow(2, 16) + 1))
 	e = big.NewInt(e_int)
 
 	//Verify that phi is greater than (2^16 + 1)
-	if !(phi.Cmp(e) == 1) {
+	//Verify that gcd(e, phi) = 1
+	if !(phi.Cmp(e) == 1) || gcd(e, phi).Cmp(big.NewInt(1)) != 0 {
 		//We need to regenerate e
+		//TODO fix this
+		panic(fmt.Errorf("wrong value for e"))
 	}
 
 	encoded = big.NewInt(0)
 	*encoded = Exp(*x, *e, *n)
+	log.Printf("econded is %s", encoded.String())
 
 	d = invert(e, phi)
+	log.Printf("e is %s", e.String())
 
 	return encoded, e, n, d
 }
 
 func RSA_Trapdoor(encoded, n, d *big.Int) (message *big.Int) {
-    message = big.NewInt(0)
+	message = big.NewInt(0)
 	*message = Exp(*encoded, *d, *n)
 	return
 }
