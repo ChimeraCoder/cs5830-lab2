@@ -284,7 +284,7 @@ func RandomNBitNumber(n int64) big.Int {
 func RandomNBitPrime(n int64, certainty int) big.Int {
 	for {
 		result := RandomNBitNumber(n)
-		if ConcurrentMillerRabin(result, certainty) {
+		if MillerRabin(result, certainty) {
 			return result
 		}
 	}
@@ -302,13 +302,13 @@ func RandomNBitSafePrime(n int64, certainty int) big.Int {
 		if tmp.Cmp(big.NewInt(11)) != 0 {
 			continue
 		}
-		if !ConcurrentMillerRabin(*number, certainty) {
+		if !MillerRabin(*number, certainty) {
 			continue
 		}
 		other := big.NewInt(0)
 		other = other.Sub(number, big.NewInt(1))
 		other = other.Div(other, big.NewInt(2))
-		if ConcurrentMillerRabin(*other, certainty) {
+		if MillerRabin(*other, certainty) {
 			return *number
 		}
 	}
