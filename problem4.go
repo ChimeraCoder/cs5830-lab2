@@ -106,6 +106,16 @@ func invert(element, divisor *big.Int) *big.Int {
 //It will never incorrectly reject a prime number as composite
 //Higer values of numTests will decrease the chance of a false positive
 func MillerRabin(n big.Int, numTests int) bool {
+	for i := 0; i < numTests; i++ {
+		if MillerRabinAux(n) == false {
+			return false
+		}
+	}
+	return true
+}
+
+//ConcurrentMillerRabin is the concurrent counterpart of MillerRabin
+func ConcurrentMillerRabin(n big.Int, numTests int) bool {
 
 	var wg sync.WaitGroup
 
@@ -116,7 +126,7 @@ func MillerRabin(n big.Int, numTests int) bool {
 		n2.Set(&n)
 		go func(n2 big.Int) {
 			wg.Add(1)
-			millerRabinAux(n2, results)
+			concurrentMillerRabinAux(n2, results)
 			wg.Done()
 		}(*n2)
 	}
@@ -150,7 +160,7 @@ func MillerRabin(n big.Int, numTests int) bool {
 //millerRabinAux sends a boolean along the response channel
 //A false value indicates that it was able to conclude definitively
 //that n is composite (not prime)
-func millerRabinAux(n big.Int, response chan bool) {
+func concurrentMillerRabinAux(n big.Int, response chan bool) {
 	d := big.NewInt(0)
 	d = d.Sub(&n, big.NewInt(1))
 
@@ -203,6 +213,58 @@ func millerRabinAux(n big.Int, response chan bool) {
 	}
 	response <- false
 	return
+}
+
+func MillerRabinAux(n big.Int) bool {
+	d := big.NewInt(0)
+	d = d.Sub(&n, big.NewInt(1))
+
+	s := big.NewInt(0)
+
+	result := big.NewInt(0)
+
+	for {
+		if result := result.Mod(d, big.NewInt(2)); result.Cmp(big.NewInt(0)) == 0 {
+			break
+		}
+
+		d = d.Div(d, big.NewInt(2)) //d = d/2
+		s.Add(s, big.NewInt(1))     // s++
+	}
+
+	//Without math.Big, the following would look like
+
+	//a := r.Int63n(n-3) + 2 // returns vals between [2, n-2] incl.
+	a := big.NewInt(0)
+	upper := big.NewInt(0)
+	upper = upper.Sub(&n, big.NewInt(3))
+	a = a.Rand(r, upper)
+	a = a.Add(a, big.NewInt(2))
+
+	x := Exp(*a, *d, n)
+
+	//Equivalent to
+	//if (x == 1) || (x == n-1) {
+	f := big.NewInt(0)
+	if (x.Cmp(big.NewInt(1)) == 0) || (x.Cmp(f.Sub(&n, big.NewInt(1))) == 0) {
+		return true
+	}
+
+	s_minus_one := big.NewInt(0)
+	s_minus_one = s_minus_one.Sub(s, big.NewInt(1))
+
+	for i := big.NewInt(0); i.Cmp(s_minus_one) == -1; i.Add(i, big.NewInt(1)) {
+		x = Exp(x, *big.NewInt(2), n)
+		if x.Cmp(big.NewInt(1)) == 0 {
+			return false
+		}
+
+		tmp := big.NewInt(0)
+		if x.Cmp(tmp.Sub(&n, big.NewInt(1))) == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 //RandomNBitNumber returns a random number with the specified number of bits
