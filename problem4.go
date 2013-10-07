@@ -305,11 +305,11 @@ func RandomNBitSafePrime(n int64, certainty int) big.Int {
 }
 
 //This function will never terminate! It will just print out numbers until it is killed
-func FindLargeSafePrimes(n int64, certainty int) {
+func FindLargeSafePrimes(n int64, certainty int, response chan big.Int) {
 	for {
 		log.Printf("Finding %d-bit safe prime with certainty %d", n, certainty)
 		prime := RandomNBitSafePrime(n, certainty)
-		log.Printf("Found prime %s", prime.String())
+        response <- prime
 		n++
 	}
 }
@@ -385,5 +385,10 @@ func RSA_Trapdoor(encoded, n, d *big.Int) (message *big.Int) {
 }
 
 func main() {
-	FindLargeSafePrimes(8, 10)
+    r := make(chan big.Int)
+    go FindLargeSafePrimes(8, 10, r)
+	for {
+        n := <-r
+        log.Print(n.String())
+    }
 }
