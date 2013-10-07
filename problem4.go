@@ -98,8 +98,6 @@ func invert(element, divisor *big.Int) *big.Int {
 	//where t is the discarded return value from euclid()
 	result := big.NewInt(0)
 
-    
-
 	return result.Div(s, g) //return s/g
 }
 
@@ -300,7 +298,7 @@ func RandomNBitSafePrime(n int64, certainty int) big.Int {
 		*number = RandomNBitNumber(n)
 		tmp := big.NewInt(0)
 		tmp.Set(number)
-		tmp = tmp.Mod(tmp,big.NewInt(12))
+		tmp = tmp.Mod(tmp, big.NewInt(12))
 		if tmp.Cmp(big.NewInt(11)) != 0 {
 			continue
 		}
@@ -321,8 +319,8 @@ func FindLargeSafePrimes(n int64, certainty int, response chan big.Int) {
 	for {
 		log.Printf("Finding %d-bit safe prime with certainty %d", n, certainty)
 		prime := RandomNBitSafePrime(n, certainty)
-        response <- prime
-		n+= 1000
+		response <- prime
+		n += 1000
 	}
 }
 
@@ -386,11 +384,10 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 
 	d = invert(e, phi)
 
-    //If d < 0 add phi to d until it is positive
-    for d.Cmp(big.NewInt(0)) < 0 {
-        d.Add(d, phi)
-    }
-
+	//If d < 0 add phi to d until it is positive
+	for d.Cmp(big.NewInt(0)) < 0 {
+		d.Add(d, phi)
+	}
 
 	log.Printf("e is %s", e.String())
 
@@ -404,10 +401,10 @@ func RSA_Trapdoor(encoded, n, d *big.Int) (message *big.Int) {
 }
 
 func main() {
-    r := make(chan big.Int)
-    go FindLargeSafePrimes(8, 10, r)
+	r := make(chan big.Int)
+	go FindLargeSafePrimes(8, 10, r)
 	for {
-        n := <-r
-        log.Print(n.String())
-    }
+		n := <-r
+		log.Print(n.String())
+	}
 }
