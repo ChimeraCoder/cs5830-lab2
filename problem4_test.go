@@ -32,7 +32,7 @@ func Test_invert(t *testing.T) {
 	log.Print("Testing inverting")
 	if invert(big.NewInt(101), big.NewInt(102)).Cmp(big.NewInt(-1)) != 0 {
 		t.Error("Invert failed")
-		log.Print("Invert failed")
+		log.Print("Invert failed to invert 101 mod 102 to -1")
 	} else {
 		log.Print("Invert passed")
 	}

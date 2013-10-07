@@ -98,6 +98,8 @@ func invert(element, divisor *big.Int) *big.Int {
 	//where t is the discarded return value from euclid()
 	result := big.NewInt(0)
 
+    
+
 	return result.Div(s, g) //return s/g
 }
 
@@ -284,7 +286,7 @@ func RandomNBitNumber(n int64) big.Int {
 func RandomNBitPrime(n int64, certainty int) big.Int {
 	for {
 		result := RandomNBitNumber(n)
-		if MillerRabin(result, certainty) {
+		if ConcurrentMillerRabin(result, certainty) {
 			return result
 		}
 	}
@@ -302,13 +304,13 @@ func RandomNBitSafePrime(n int64, certainty int) big.Int {
 		if tmp.Cmp(big.NewInt(11)) != 0 {
 			continue
 		}
-		if !MillerRabin(*number, certainty) {
+		if !ConcurrentMillerRabin(*number, certainty) {
 			continue
 		}
 		other := big.NewInt(0)
 		other = other.Sub(number, big.NewInt(1))
 		other = other.Div(other, big.NewInt(2))
-		if MillerRabin(*other, certainty) {
+		if ConcurrentMillerRabin(*other, certainty) {
 			return *number
 		}
 	}
@@ -320,7 +322,7 @@ func FindLargeSafePrimes(n int64, certainty int, response chan big.Int) {
 		log.Printf("Finding %d-bit safe prime with certainty %d", n, certainty)
 		prime := RandomNBitSafePrime(n, certainty)
         response <- prime
-		n++
+		n+= 1000
 	}
 }
 
@@ -383,6 +385,13 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 	log.Printf("econded is %s", encoded.String())
 
 	d = invert(e, phi)
+
+    //If d < 0 add phi to d until it is positive
+    for d.Cmp(big.NewInt(0)) < 0 {
+        d.Add(d, phi)
+    }
+
+
 	log.Printf("e is %s", e.String())
 
 	return encoded, e, n, d
