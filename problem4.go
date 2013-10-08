@@ -331,7 +331,8 @@ func FindPrimeAndGenerator(n int64, certainty int) (big.Int, big.Int) {
 	q = q.Div(q, big.NewInt(2))
 	nBig := big.NewInt(n)
 	gCandidate := big.NewInt(1)
-	for ; gCandidate.Cmp(&p) == -1; gCandidate = gCandidate.Add(gCandidate, big.NewInt(1)) {
+	for { 
+		gCandidate = gCandidate.Rand(r, &p)
 
 		if e := Exp(*gCandidate, *big.NewInt(2), *nBig); e.Cmp(gCandidate) == 0 {
 			continue

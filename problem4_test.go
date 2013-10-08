@@ -180,7 +180,7 @@ func Test_RSA(t *testing.T) {
 	log.Print("(\"Hello World!\"'s 96-bit binary representation, in decimal)")
 
 
-	for _, i := range []int{64, 128, 256, 512} {
+	for _, i := range []int{128, 256, 512} {
 		log.Print("----------")
 		log.Printf("%d BITS", i)
 		log.Printf("Finding %d-bit safe prime...", i)
@@ -203,6 +203,14 @@ func Test_RSA(t *testing.T) {
 		log.Printf("n: %s", n.String())
 		log.Printf("e: %s", e.String())
 		log.Printf("d: %s", d.String())
+		dec := big.NewInt(0)
+		*dec = Exp(*enc, *d, *n)
+		if m.Cmp(dec) == 0 {
+			log.Printf("Dec(message): %s", dec.String())
+			log.Print("... which == the message.");
+		} else {
+			panic("RSA decoding produced value different from message")
+		}
 	}
 
 }
