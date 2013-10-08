@@ -170,4 +170,39 @@ func Test_RSA(t *testing.T) {
 		t.Log("Successfully encrypted message with RSA and decrypted with the RSA trapdoor")
 	}
 
+	log.Print("Encoding test message using various key bitlengths.")
+	m := big.NewInt(0)
+	m, re := m.SetString("22405534230753963835153736737", 10)
+	if !re {
+			panic("Failed to scan string literal into a BigInt")
+	}
+	log.Printf("Message: %s", m.String())
+	log.Print("(\"Hello World!\"'s 96-bit binary representation, in decimal)")
+
+
+	for _, i := range []int{64, 128, 256, 512} {
+		log.Print("----------")
+		log.Printf("%d BITS", i)
+		log.Printf("Finding %d-bit safe prime...", i)
+		g := big.NewInt(0)
+		p := big.NewInt(0)
+		*p, *g = FindPrimeAndGenerator(int64(i), 4)
+		log.Printf("p: %s", p.String())
+		log.Print("Discrete log OWF:")
+		log.Printf("g: %s", g.String())
+		enc := big.NewInt(0)
+		*enc = Exp(*g, *m, *p)
+		log.Printf("Enc(message): %s", enc.String())
+		log.Print("\n")
+		log.Print("RSA OWF:")
+		n := big.NewInt(0)
+		d := big.NewInt(0)
+		e := big.NewInt(0)
+		enc, e, n, d = RSA(m, int64(i), 4)
+		log.Printf("Enc(message): %s", enc.String())
+		log.Printf("n: %s", n.String())
+		log.Printf("e: %s", e.String())
+		log.Printf("d: %s", d.String())
+	}
+
 }

@@ -346,12 +346,10 @@ func FindPrimeAndGenerator(n int64, certainty int) (big.Int, big.Int) {
 
 func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int) {
 
-	log.Print("Starting RSA")
 	p := big.NewInt(0)
 	q := big.NewInt(0)
 	*p = RandomNBitPrime(bitlength/2, certainty)
 	*q = RandomNBitPrime(bitlength/2, certainty)
-	log.Printf("Generated primes %s and %s", p.String(), q.String())
 
 	//phi = (p-1)(q-1)
 	phi := big.NewInt(0)
@@ -360,12 +358,9 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 	q_1 = q_1.Sub(q, big.NewInt(1))
 	phi.Mul(phi, q_1)
 
-	log.Printf("phi is %s", phi.String())
-
 	n = big.NewInt(0)
 	n = n.Mul(p, q)
 
-	log.Printf("n is %s", n.String())
 	//Generate e (this can be constant)
 	e_int := int64(math.Floor(math.Pow(2, 16) + 1))
 	e = big.NewInt(e_int)
@@ -380,7 +375,6 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 
 	encoded = big.NewInt(0)
 	*encoded = Exp(*x, *e, *n)
-	log.Printf("econded is %s", encoded.String())
 
 	d = invert(e, phi)
 
@@ -388,8 +382,6 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 	for d.Cmp(big.NewInt(0)) < 0 {
 		d.Add(d, phi)
 	}
-
-	log.Printf("e is %s", e.String())
 
 	return encoded, e, n, d
 }
