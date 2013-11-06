@@ -1,4 +1,4 @@
-package main
+package rsa
 
 import (
 	"fmt"
@@ -393,6 +393,7 @@ func RSA_Trapdoor(encoded, n, d *big.Int) (message *big.Int) {
 	return
 }
 
+/**
 func main() {
 	r := make(chan big.Int)
 	go FindLargeSafePrimes(8, 10, r)
@@ -401,3 +402,5 @@ func main() {
 		log.Print(n.String())
 	}
 }
+
+*/
