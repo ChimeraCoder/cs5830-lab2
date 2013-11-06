@@ -65,7 +65,7 @@ func euclid(a, b *big.Int) (x *big.Int, y *big.Int) {
 }
 
 //exp returns a^{pow} mod n
-func Exp(a, pow, n big.Int) big.Int {
+func Exp(a, pow, n *big.Int) *big.Int {
 
 	result := big.NewInt(1)
 
@@ -75,17 +75,17 @@ func Exp(a, pow, n big.Int) big.Int {
 	for i := 0; i < pow.BitLen(); i++ {
 		bit := pow.Bit(i)
 		if bit == 1 {
-			result.Mul(result, &tmp)
-			result.Mod(result, &n)
+			result.Mul(result, tmp)
+			result.Mod(result, n)
 		}
 
 		//This could be simplified by big.Exp, but we can't use that
 		foo := big.NewInt(0)
-		tmp = *foo.Mul(&tmp, &tmp)
-		tmp = *foo.Mod(&tmp, &n)
+		tmp = foo.Mul(tmp, tmp)
+		tmp = foo.Mod(tmp, n)
 	}
 
-	return *result
+	return result
 }
 
 //invert finds the modular inverse of an element, mod divisor
@@ -185,7 +185,8 @@ func concurrentMillerRabinAux(n big.Int, response chan bool) {
 	a = a.Rand(r, upper)
 	a = a.Add(a, big.NewInt(2))
 
-	x := Exp(*a, *d, n)
+	var x *big.Int
+	x = Exp(a, d, &n)
 
 	//Equivalent to
 	//if (x == 1) || (x == n-1) {
@@ -199,7 +200,7 @@ func concurrentMillerRabinAux(n big.Int, response chan bool) {
 	s_minus_one = s_minus_one.Sub(s, big.NewInt(1))
 
 	for i := big.NewInt(0); i.Cmp(s_minus_one) == -1; i.Add(i, big.NewInt(1)) {
-		x = Exp(x, *big.NewInt(2), n)
+		x = Exp(x, big.NewInt(2), &n)
 		if x.Cmp(big.NewInt(1)) == 0 {
 			response <- false
 			return
@@ -241,7 +242,7 @@ func MillerRabinAux(n big.Int) bool {
 	a = a.Rand(r, upper)
 	a = a.Add(a, big.NewInt(2))
 
-	x := Exp(*a, *d, n)
+	x := Exp(a, d, &n)
 
 	//Equivalent to
 	//if (x == 1) || (x == n-1) {
@@ -254,7 +255,7 @@ func MillerRabinAux(n big.Int) bool {
 	s_minus_one = s_minus_one.Sub(s, big.NewInt(1))
 
 	for i := big.NewInt(0); i.Cmp(s_minus_one) == -1; i.Add(i, big.NewInt(1)) {
-		x = Exp(x, *big.NewInt(2), n)
+		x = Exp(x, big.NewInt(2), &n)
 		if x.Cmp(big.NewInt(1)) == 0 {
 			return false
 		}
@@ -331,13 +332,13 @@ func FindPrimeAndGenerator(n int64, certainty int) (big.Int, big.Int) {
 	q = q.Div(q, big.NewInt(2))
 	nBig := big.NewInt(n)
 	gCandidate := big.NewInt(1)
-	for { 
+	for {
 		gCandidate = gCandidate.Rand(r, &p)
 
-		if e := Exp(*gCandidate, *big.NewInt(2), *nBig); e.Cmp(gCandidate) == 0 {
+		if e := Exp(gCandidate, big.NewInt(2), nBig); e.Cmp(gCandidate) == 0 {
 			continue
 		}
-		if e := Exp(*gCandidate, *q, *nBig); e.Cmp(gCandidate) == 0 {
+		if e := Exp(gCandidate, q, nBig); e.Cmp(gCandidate) == 0 {
 			continue
 		}
 		break
@@ -375,7 +376,7 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 	}
 
 	encoded = big.NewInt(0)
-	*encoded = Exp(*x, *e, *n)
+	encoded = Exp(x, e, n)
 
 	d = invert(e, phi)
 
@@ -389,7 +390,7 @@ func RSA(x *big.Int, bitlength int64, certainty int) (encoded, e, n, d *big.Int)
 
 func RSA_Trapdoor(encoded, n, d *big.Int) (message *big.Int) {
 	message = big.NewInt(0)
-	*message = Exp(*encoded, *d, *n)
+	message = Exp(encoded, d, n)
 	return
 }
 

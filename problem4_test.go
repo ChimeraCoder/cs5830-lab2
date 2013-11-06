@@ -9,7 +9,7 @@ import (
 
 func Test_Exponentiation(t *testing.T) {
 
-	if e := Exp(*big.NewInt(3), *big.NewInt(16), *big.NewInt(3000)); e.Cmp(big.NewInt(2721)) != 0 {
+	if e := Exp(big.NewInt(3), big.NewInt(16), big.NewInt(3000)); e.Cmp(big.NewInt(2721)) != 0 {
 		t.Error("exp failed")
 		log.Print("first exp failed")
 	} else {
@@ -18,7 +18,7 @@ func Test_Exponentiation(t *testing.T) {
 	}
 
 	//if Exp(2, 10, 5) != 4 {
-	if e := Exp(*big.NewInt(2), *big.NewInt(10), *big.NewInt(5)); e.Cmp(big.NewInt(4)) != 0 {
+	if e := Exp(big.NewInt(2), big.NewInt(10), big.NewInt(5)); e.Cmp(big.NewInt(4)) != 0 {
 		t.Error("second exp failed")
 		log.Print("second exp failed")
 	} else {
@@ -174,11 +174,10 @@ func Test_RSA(t *testing.T) {
 	m := big.NewInt(0)
 	m, re := m.SetString("22405534230753963835153736737", 10)
 	if !re {
-			panic("Failed to scan string literal into a BigInt")
+		panic("Failed to scan string literal into a BigInt")
 	}
 	log.Printf("Message: %s", m.String())
 	log.Print("(\"Hello World!\"'s 96-bit binary representation, in decimal)")
-
 
 	for _, i := range []int{128, 256, 512} {
 		log.Print("----------")
@@ -191,7 +190,7 @@ func Test_RSA(t *testing.T) {
 		log.Print("Discrete log OWF:")
 		log.Printf("g: %s", g.String())
 		enc := big.NewInt(0)
-		*enc = Exp(*g, *m, *p)
+		enc = Exp(g, m, p)
 		log.Printf("Enc(message): %s", enc.String())
 		log.Print("\n")
 		log.Print("RSA OWF:")
@@ -204,10 +203,10 @@ func Test_RSA(t *testing.T) {
 		log.Printf("e: %s", e.String())
 		log.Printf("d: %s", d.String())
 		dec := big.NewInt(0)
-		*dec = Exp(*enc, *d, *n)
+		dec = Exp(enc, d, n)
 		if m.Cmp(dec) == 0 {
 			log.Printf("Dec(message): %s", dec.String())
-			log.Print("... which == the message.");
+			log.Print("... which == the message.")
 		} else {
 			panic("RSA decoding produced value different from message")
 		}
