@@ -2,7 +2,6 @@ package rsa
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"math/big"
 	"math/rand"
@@ -315,13 +314,15 @@ func RandomNBitSafePrime(n int64, certainty int) big.Int {
 	}
 }
 
-//This function will never terminate! It will just print out numbers until it is killed
-func FindLargeSafePrimes(n int64, certainty int, response chan big.Int) {
+// This function will never terminate! It will just print out numbers until it is killed
+// Numbers are returned in a separate channel from the log, so they can be processed by the calling application as needed
+func FindLargeSafePrimes(n int64, interval int64, certainty int, response chan big.Int, logChan chan string) {
 	for {
-		log.Printf("Finding %d-bit safe prime with certainty %d", n, certainty)
+		logChan <- fmt.Sprintf("Finding %d-bit safe prime with certainty %d", n, certainty)
 		prime := RandomNBitSafePrime(n, certainty)
 		response <- prime
-		n += 1000
+		logChan <- fmt.Sprintf("Found %d-bit safe prime with certainty %d: %s", n, certainty, prime.String())
+		n += interval
 	}
 }
 
@@ -393,15 +394,3 @@ func RSA_Trapdoor(encoded, n, d *big.Int) (message *big.Int) {
 	message = Exp(encoded, d, n)
 	return
 }
-
-/**
-func main() {
-	r := make(chan big.Int)
-	go FindLargeSafePrimes(8, 10, r)
-	for {
-		n := <-r
-		log.Print(n.String())
-	}
-}
-
-*/
