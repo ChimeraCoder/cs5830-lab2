@@ -11,6 +11,12 @@ import (
 // using constant for debugging; in production would use time.now()
 var r = rand.New(rand.NewSource(123))
 
+// SetRandSource allows calling packages to specify the random number generator used
+func SetRandSource(rnd *rand.Rand) {
+	// TODO make this threadsafe
+	r = rnd
+}
+
 //Function gcd uses Euclid's algorithm to compute the inverse of a number, mod m
 func gcd(a, m *big.Int) *big.Int {
 	a2 := big.NewInt(0)
