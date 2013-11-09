@@ -332,6 +332,20 @@ func FindLargeSafePrimes(n int64, interval int64, certainty int, response chan b
 	}
 }
 
+// This function will never terminate! It will just print out numbers until it is killed
+// Numbers are returned in a separate channel from the log, so they can be processed by the calling application as needed
+func FindSafePrimesByCertainty(n int64, interval int, certainty int, response chan big.Int, logChan chan string) {
+	for {
+		logChan <- fmt.Sprintf("Finding %d-bit safe prime with certainty %d", n, certainty)
+		prime := RandomNBitSafePrime(n, certainty)
+		response <- prime
+		logChan <- fmt.Sprintf("Found %d-bit safe prime with certainty %d: %s", n, certainty, prime.String())
+		certainty += interval
+	}
+}
+
+
+
 func FindPrimeAndGenerator(n int64, certainty int) (big.Int, big.Int) {
 	p := RandomNBitSafePrime(n, certainty)
 	q := big.NewInt(0)
