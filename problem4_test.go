@@ -80,7 +80,7 @@ func TestRandomNBitNumber(t *testing.T) {
 func Test_RandomNBitSafePrime(t *testing.T) {
 	//bits := int64(80)
 	bits := int64(20)
-	number := RandomNBitSafePrime(bits, 10)
+	number := RandomNBitSafePrime(bits, 10, false)
 
 	//If number is a safe prime, "other_prime" should be prime too
 
@@ -101,7 +101,7 @@ func Test_RandomNBitSafePrime(t *testing.T) {
 func Test_FindGenerator(t *testing.T) {
 	bits := int64(6)
 	certainty := 10
-	p1, g1 := FindPrimeAndGenerator(bits, certainty)
+	p1, g1 := FindPrimeAndGenerator(bits, certainty, false)
 	p := &p1
 	g := &g1
 
@@ -185,7 +185,7 @@ func Test_RSA(t *testing.T) {
 		log.Printf("Finding %d-bit safe prime...", i)
 		g := big.NewInt(0)
 		p := big.NewInt(0)
-		*p, *g = FindPrimeAndGenerator(int64(i), 4)
+		*p, *g = FindPrimeAndGenerator(int64(i), 4, false)
 		log.Printf("p: %s", p.String())
 		log.Print("Discrete log OWF:")
 		log.Printf("g: %s", g.String())
