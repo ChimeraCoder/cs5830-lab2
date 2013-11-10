@@ -129,9 +129,9 @@ func ConcurrentMillerRabin(n big.Int, numTests int, seed int64) bool {
 	for i := 0; i < numTests; i++ {
 		n2 := big.NewInt(0)
 		n2.Set(&n)
-		go func(n2 big.Int, seed int64) {
+        wg.Add(1)
+        go func(n2 big.Int, seed int64) {
 			r := rand.New(rand.NewSource(seed))
-			wg.Add(1)
 			concurrentMillerRabinAux(n2, results, r)
 			wg.Done()
 		}(*n2, seed)
