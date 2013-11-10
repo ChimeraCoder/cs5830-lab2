@@ -120,7 +120,7 @@ func MillerRabin(n big.Int, numTests int) bool {
 }
 
 //ConcurrentMillerRabin is the concurrent counterpart of MillerRabin
-func ConcurrentMillerRabin(n big.Int, numTests int) bool {
+func ConcurrentMillerRabin(n big.Int, numTests int, seed int64) bool {
 
 	var wg sync.WaitGroup
 
@@ -129,11 +129,13 @@ func ConcurrentMillerRabin(n big.Int, numTests int) bool {
 	for i := 0; i < numTests; i++ {
 		n2 := big.NewInt(0)
 		n2.Set(&n)
-		go func(n2 big.Int) {
+		go func(n2 big.Int, seed int64) {
+			r := rand.New(rand.NewSource(seed))
 			wg.Add(1)
-			concurrentMillerRabinAux(n2, results)
+			concurrentMillerRabinAux(n2, results, r)
 			wg.Done()
-		}(*n2)
+		}(*n2, seed)
+		seed++
 	}
 
 	done := make(chan bool)
@@ -165,7 +167,7 @@ func ConcurrentMillerRabin(n big.Int, numTests int) bool {
 //millerRabinAux sends a boolean along the response channel
 //A false value indicates that it was able to conclude definitively
 //that n is composite (not prime)
-func concurrentMillerRabinAux(n big.Int, response chan bool) {
+func concurrentMillerRabinAux(n big.Int, response chan bool, r *rand.Rand) {
 	d := big.NewInt(0)
 	d = d.Sub(&n, big.NewInt(1))
 
