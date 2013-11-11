@@ -129,10 +129,10 @@ func ConcurrentMillerRabin(n big.Int, numTests int, seed int64) bool {
 	for i := 0; i < numTests; i++ {
 		n2 := big.NewInt(0)
 		n2.Set(&n)
-        wg.Add(1)
-        go func(n2 big.Int, seed int64) {
-			r := rand.New(rand.NewSource(seed))
-			concurrentMillerRabinAux(n2, results, r)
+		wg.Add(1)
+		go func(n2 big.Int, seed int64) {
+			rlocal := rand.New(rand.NewSource(seed))
+			concurrentMillerRabinAux(n2, results, rlocal)
 			wg.Done()
 		}(*n2, seed)
 		seed++
@@ -167,7 +167,7 @@ func ConcurrentMillerRabin(n big.Int, numTests int, seed int64) bool {
 //millerRabinAux sends a boolean along the response channel
 //A false value indicates that it was able to conclude definitively
 //that n is composite (not prime)
-func concurrentMillerRabinAux(n big.Int, response chan bool, r *rand.Rand) {
+func concurrentMillerRabinAux(n big.Int, response chan bool, rl *rand.Rand) {
 	d := big.NewInt(0)
 	d = d.Sub(&n, big.NewInt(1))
 
@@ -189,7 +189,7 @@ func concurrentMillerRabinAux(n big.Int, response chan bool, r *rand.Rand) {
 	a := big.NewInt(0)
 	upper := big.NewInt(0)
 	upper = upper.Sub(&n, big.NewInt(3))
-	a = a.Rand(r, upper)
+	a = a.Rand(rl, upper)
 	a = a.Add(a, big.NewInt(2))
 
 	var x *big.Int
