@@ -124,7 +124,7 @@ func ConcurrentMillerRabin(n big.Int, numTests int, seed int64) bool {
 
 	var wg sync.WaitGroup
 
-	results := make(chan bool)
+	results := make(chan bool, numTests)
 
 	for i := 0; i < numTests; i++ {
 		n2 := big.NewInt(0)
