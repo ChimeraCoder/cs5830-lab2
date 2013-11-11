@@ -8,6 +8,8 @@ import (
 	"sync"
 )
 
+var RAND_SEED int64 = 123
+
 // using constant for debugging; in production would use time.now()
 var r = rand.New(rand.NewSource(123))
 
@@ -310,13 +312,25 @@ func RandomNBitSafePrime(n int64, certainty int, concurrent bool) big.Int {
 		if tmp.Cmp(big.NewInt(11)) != 0 {
 			continue
 		}
-		if !MillerRabin(*number, certainty) {
+
+		var MRFunction func(big.Int, int) bool
+		if concurrent {
+			seed := RAND_SEED
+			MRFunction = func(i big.Int, j int) bool {
+				return ConcurrentMillerRabin(i, j, seed)
+			}
+			RAND_SEED++
+		} else {
+			MRFunction = MillerRabin
+		}
+
+		if !MRFunction(*number, certainty) {
 			continue
 		}
 		other := big.NewInt(0)
 		other = other.Sub(number, big.NewInt(1))
 		other = other.Div(other, big.NewInt(2))
-		if MillerRabin(*other, certainty) {
+		if MRFunction(*other, certainty) {
 			return *number
 		}
 	}
